@@ -1,0 +1,6 @@
+src/
+*.html
+*.css
+*.js
+testing.ts
+
