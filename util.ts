@@ -1,4 +1,4 @@
-import { debounce, blue, dim, gray, underline } from "./dep.ts";
+import { debounce, blue, dim, underline, green, italic, red, bold } from "./dep.ts";
 
 export function injectWebSocket(fileContent: string): string {
   const websocketjs = `
@@ -38,3 +38,15 @@ export const debounceFn = debounce((socket: WebSocket, filename: string) => {
   console.log(`${blue("[Livedev]")}: ${underline(dim(filename))} change detected! Reloading!`);
   socket.send("reload");
 }, 200);
+
+export function eroListen(text: string) {
+  return italic(green(`[erodev]: ${text}`));
+}
+
+export function eroError(text: string) {
+  return red(`${bold("error")}: ${text}`);
+}
+
+export function eroLog(text: string) {
+  return `${blue("[erodev LOG]")}: ${text}`;
+}

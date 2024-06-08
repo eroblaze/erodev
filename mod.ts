@@ -1,19 +1,23 @@
-import { debounceFn, injectWebSocket } from "./util.ts";
+import { eroError, eroListen, eroLog, injectWebSocket } from "./util.ts";
 import {
+  Erowatch,
   path_join,
-  serveFile,
   path_extname,
-  green,
-  red,
+  path_dirname,
+  url_extname,
+  serveFile,
+  assert,
   bold,
   italic,
+  underline,
+  dim,
+  red,
   blue,
-  url_dirname,
-  url_extname,
-  path_dirname,
-  Erowatch
+  green
 } from "./dep.ts";
-import { assert } from "jsr:@std/assert@^0.225.3/assert";
+
+// For erowatch stuff
+let watcher: Erowatch | undefined;
 
 // Check the argument list
 let PORT = 3000;
@@ -25,20 +29,16 @@ let filename: string = "";
 if (argsList.length) {
   argsList.forEach((arg) => {
     if (!arg.startsWith("--port=")) {
-      console.error(`${red(bold("error"))}: unexpected argument '${arg}' found`);
+      console.error(eroError(`unexpected argument '${arg}' found`));
       Deno.exit(1);
     } else {
       if (PORT_OK) {
-        console.error(
-          `${red(bold("error"))}: the argument '--port=<PORT>' cannot be used multiple times`
-        );
+        console.error(eroError(`the argument '--port=<PORT>' cannot be used multiple times`));
         Deno.exit(1);
       }
       const argSections = arg.split("=");
       if (argSections.length === 1 || argSections.length > 2 || !argSections[1].match(/^\d+$/g)) {
-        console.error(
-          `${red(bold("error"))}: unexpected value '${argSections.slice(1).join("=")}' found`
-        );
+        console.error(eroError(`unexpected value '${argSections.slice(1).join("=")}' found`));
         Deno.exit(1);
       } else {
         PORT = +argSections[1];
@@ -47,100 +47,127 @@ if (argsList.length) {
     }
   });
 }
+const serveOptions = {
+  port: PORT,
+  onListen: ({ port, hostname }: { port: number; hostname: string }) =>
+    console.log(eroListen(`Server started at http://${hostname}:${port}`))
+};
 
-Deno.serve(
-  { port: PORT, onListen: () => console.log(italic(green(`Server is Started at port: ${PORT}`))) },
-  async (req: Request) => {
-    if (req.headers.get("upgrade") === "websocket") {
-      const url = new URL(req.url);
-      assert(url.pathname.endsWith("ws"), "url doesn't end with '/ws'");
-      filename = path_join(Deno.cwd(), path_dirname(url.pathname));
+Deno.serve(serveOptions, async (req: Request) => {
+  const url = new URL(req.url);
 
-      if (path_extname(filename) !== ".html") {
-        filename = path_join(filename, "index.html");
+  if (req.headers.get("upgrade") === "websocket") {
+    assert(url.pathname.endsWith("ws"), eroError("url doesn't end with '/ws'"));
+    filename = path_join(Deno.cwd(), path_dirname(url.pathname));
+
+    if (path_extname(filename) !== ".html") {
+      filename = path_join(filename, "index.html");
+    }
+
+    const { socket, response } = Deno.upgradeWebSocket(req);
+
+    socket.onopen = () => {
+      socket.send("Connected");
+      console.log(eroLog("Connected"));
+
+      assert(watcher, eroError("watcher should not be undefined"));
+      watcher
+        .add(filename)
+        .watch()
+        .on("modify", (w_paths) => {
+          console.log(
+            `${blue("[erodev]")}: ${underline(dim(w_paths.join()))} change detected! Reloading!`
+          );
+          socket.send("reload");
+        });
+    };
+
+    socket.onmessage = (e: MessageEvent) => {
+      console.log(`received: ${e.data}`);
+    };
+
+    socket.onclose = () => {
+      console.log(eroLog("Disconnected"));
+      watcher?.close();
+      watcher = undefined;
+    };
+
+    socket.onerror = () => {
+      watcher?.close();
+      watcher = undefined;
+    };
+
+    return response;
+  } else {
+    filename = path_join(Deno.cwd(), url.pathname);
+
+    console.log(eroLog(`${blue("from other part->")} ${filename}`));
+
+    if (url_extname(url) === ".html") {
+      // serve `filename` from the current working dir
+
+      let fileContent: string = "";
+
+      try {
+        fileContent = await Deno.readTextFile(filename);
+      } catch {
+        return new Response("Not Found", { status: 404 });
       }
 
-      const { socket, response } = Deno.upgradeWebSocket(req);
+      const injectedHtml = injectWebSocket(fileContent);
 
-      let watcher: Deno.FsWatcher | null;
+      watcher = new Erowatch();
 
-      socket.onopen = async () => {
-        socket.send("Connected");
-        console.log("connected from server", filename);
-
-        watcher = Deno.watchFs(filename);
-
-        for await (const event of watcher) {
-          if (event.kind == "modify") {
-            console.log("modify");
-            // Multiple 'modify' events gets fired at the same time, so ensure only the first event invokes 'debounceFn()'
-            debounceFn(socket, filename);
-          }
+      return new Response(injectedHtml, {
+        headers: {
+          "Content-Type": "text/html",
+          "Cache-Control": "max-age=0"
         }
-      };
-
-      socket.onmessage = (e: MessageEvent<any>) => {
-        console.log(`received: ${e.data}`);
-      };
-
-      socket.onclose = () => {
-        console.log("disconnected");
-        watcher?.close();
-      };
-
-      return response;
+      });
     } else {
-      const url = new URL(req.url);
-      filename = path_join(Deno.cwd(), url.pathname);
+      /*
+       * There are either two possibilites:
+       * a) Other Resources like CSS, js, etc
+       * b) A directory
+       */
+      try {
+        // Check if that file exists
+        const fileInfo = Deno.lstatSync(filename);
+        if (!fileInfo.isFile) throw Deno.errors.NotFound;
 
-      console.log(`${blue("from other part:")} ${filename}`);
+        // Add Files that are automatically requested by the browser (after an html page loads) to the watcher instance
+        if (watcher) {
+          watcher.add(filename);
+        }
 
-      if (url_extname(url) === ".html") {
-        // serve `filename` from the current working dir
-
+        const resp = await serveFile(req, filename);
+        resp.headers.set("Cache-Control", "max-age=0");
+        return resp;
+      } catch {
+        filename = path_join(filename, "index.html");
         let fileContent: string = "";
 
         try {
           fileContent = await Deno.readTextFile(filename);
+          if (!url.pathname.endsWith("/")) {
+            // localhost/src != localhost/src/, so ensure it is redirected
+            return Response.redirect(url.href + "/");
+          }
         } catch {
           return new Response("Not Found", { status: 404 });
         }
 
         const injectedHtml = injectWebSocket(fileContent);
+
+        watcher = new Erowatch();
+
         return new Response(injectedHtml, {
           headers: {
-            "Content-Type": "text/html"
+            "Content-Type": "text/html",
+            "Cache-Control": "max-age=0"
           }
         });
-      } else {
-        /*
-         * There are other two possibilites:
-         * a) Other Resources like CSS, js, etc
-         * b) A directory
-         */
-        try {
-          // Check if that file exists
-          const fileInfo = Deno.lstatSync(filename);
-          if (!fileInfo.isFile) throw Deno.errors.NotFound;
-          return serveFile(req, filename);
-        } catch {
-          filename = path_join(filename, "index.html");
-          let fileContent: string = "";
-
-          try {
-            fileContent = await Deno.readTextFile(filename);
-          } catch {
-            return new Response("Not Found", { status: 404 });
-          }
-
-          const injectedHtml = injectWebSocket(fileContent);
-          return new Response(injectedHtml, {
-            headers: {
-              "Content-Type": "text/html"
-            }
-          });
-        }
       }
     }
   }
-);
+});
