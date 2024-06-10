@@ -5,11 +5,28 @@ export function injectWebSocket(fileContent: string): string {
 <!-- Code injected by LiveDev -->
 <script>
 if ("WebSocket" in window) {
+
+  function refreshCSS() {
+    const sheets = Array.from(document.getElementsByTagName("link"));
+    const head = document.getElementsByTagName("head")[0];
+    for (let i = 0; i < sheets.length; ++i) {
+      let elem = sheets[i];
+      const parent = elem.parentElement || head;
+      parent.removeChild(elem);
+      const rel = elem.rel;
+      if ( (elem.href && typeof rel != "string") || rel.length == 0 || rel.toLowerCase() == "stylesheet") {
+        elem.href = !(elem.href.endsWith("?q=erodev"))? elem.href+"?q=erodev": elem.href;
+      }
+      parent.appendChild(elem);
+    }
+  }
+
   const protocol = window.location.protocol === "http:"?"ws://":"wss://";
   const socket = new WebSocket(protocol + window.location.host + window.location.pathname + "/ws");
 
   socket.onmessage = (msg) => {
-    if (msg.data === "reload") {
+    if (msg.data === "refreshCSS") refreshCSS()
+    else if (msg.data === "reload") {
       window.location.reload();
     }
   }

@@ -77,9 +77,12 @@ Deno.serve(serveOptions, async (req: Request) => {
           console.log(
             `${blue("[erodev]")}: ${underline(dim(w_paths.join()))} change detected! Reloading!`
           );
-          socket.send("reload");
-          // iMPORTANT so that the socket's onclose() callback is called to terminate the Erowatch process'
-          socket.close();
+          if (path_extname(w_paths[0]) === ".css") socket.send("refreshCSS");
+          else {
+            socket.send("reload");
+            // iMPORTANT so that the socket's onclose() callback is called to terminate the Erowatch process'
+            socket.close();
+          }
         })
         .watch();
     };
@@ -103,7 +106,14 @@ Deno.serve(serveOptions, async (req: Request) => {
 
     //console.log(eroLog(`${blue("from other part->")} ${filename}`));
 
-    if (url_extname(url) === ".html") {
+    const searchParams = new URLSearchParams(req.url);
+    if (searchParams.get("q") === "erodev") {
+      console.log(eroLog("a CSS refresh"));
+      // This is a CSS request
+      const resp = await serveFile(req, filename);
+      resp.headers.set("Cache-Control", "max-age=0");
+      return resp;
+    } else if (url_extname(url) === ".html") {
       // serve `filename` from the current working dir
 
       let fileContent: string = "";
