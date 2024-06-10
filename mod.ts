@@ -1,4 +1,4 @@
-import { eroError, eroListen, eroLog, injectWebSocket } from "./util.ts";
+import { debounceFn, eroError, eroListen, eroLog, injectWebSocket } from "./util.ts";
 import {
   Erowatch,
   path_join,
@@ -73,13 +73,15 @@ Deno.serve(serveOptions, async (req: Request) => {
       assert(watcher, eroError("watcher should not be undefined"));
       watcher
         .add(filename)
-        .watch()
         .on("modify", (w_paths) => {
           console.log(
             `${blue("[erodev]")}: ${underline(dim(w_paths.join()))} change detected! Reloading!`
           );
           socket.send("reload");
-        });
+          // iMPORTANT so that the socket's onclose() callback is called to terminate the Erowatch process'
+          socket.close();
+        })
+        .watch();
     };
 
     socket.onmessage = (e: MessageEvent) => {
@@ -89,19 +91,17 @@ Deno.serve(serveOptions, async (req: Request) => {
     socket.onclose = () => {
       console.log(eroLog("Disconnected"));
       watcher?.close();
-      watcher = undefined;
     };
 
     socket.onerror = () => {
       watcher?.close();
-      watcher = undefined;
     };
 
     return response;
   } else {
     filename = path_join(Deno.cwd(), url.pathname);
 
-    console.log(eroLog(`${blue("from other part->")} ${filename}`));
+    //console.log(eroLog(`${blue("from other part->")} ${filename}`));
 
     if (url_extname(url) === ".html") {
       // serve `filename` from the current working dir
