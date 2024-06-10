@@ -2,7 +2,7 @@ import { debounce, blue, dim, underline, green, italic, red, bold } from "./dep.
 
 export function injectWebSocket(fileContent: string): string {
   const websocketjs = `
-<!-- Code injected by LiveDev -->
+<!-- Code injected by EroDev -->
 <script>
 if ("WebSocket" in window) {
 
@@ -27,6 +27,7 @@ if ("WebSocket" in window) {
   socket.onmessage = (msg) => {
     if (msg.data === "refreshCSS") refreshCSS()
     else if (msg.data === "reload") {
+      socket.close();
       window.location.reload();
     }
   }
@@ -52,18 +53,18 @@ if ("WebSocket" in window) {
 }
 
 export const debounceFn = debounce((socket: WebSocket, filename: string) => {
-  console.log(`${blue("[Livedev]")}: ${underline(dim(filename))} change detected! Reloading!`);
+  console.log(`${blue("[erodev]")} ${underline(dim(filename))} change detected! Reloading!`);
   socket.send("reload");
 }, 200);
 
 export function eroListen(text: string) {
-  return italic(green(`[erodev]: ${text}`));
+  return italic(green(`[erodev] ${text}`));
 }
 
 export function eroError(text: string) {
-  return red(`${bold("error")}: ${text}`);
+  return red(`${bold("error")} ${text}`);
 }
 
-export function eroLog(text: string) {
-  return `${blue("[erodev LOG]")}: ${text}`;
+export function eroLog(...text: string[]) {
+  return `${blue("[erodev]")} ${text.join()}`;
 }

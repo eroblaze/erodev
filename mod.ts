@@ -47,6 +47,7 @@ if (argsList.length) {
     }
   });
 }
+
 const serveOptions = {
   port: PORT,
   onListen: ({ port, hostname }: { port: number; hostname: string }) =>
@@ -75,14 +76,18 @@ Deno.serve(serveOptions, async (req: Request) => {
         .add(filename)
         .on("modify", (w_paths) => {
           console.log(
-            `${blue("[erodev]")}: ${underline(dim(w_paths.join()))} change detected! Reloading!`
+            `${blue("[erodev]")} ${underline(dim(w_paths.join()))} change detected! Reloading!`
           );
-          if (path_extname(w_paths[0]) === ".css") socket.send("refreshCSS");
-          else {
-            socket.send("reload");
-            // iMPORTANT so that the socket's onclose() callback is called to terminate the Erowatch process'
-            socket.close();
-          }
+          console.log(eroLog(`readyState: ${socket.readyState}`));
+          if (socket.readyState === 1) {
+            console.log(eroLog("sent something"));
+            if (path_extname(w_paths[0]) === ".css") socket.send("refreshCSS");
+            else {
+              socket.send("reload");
+              // iMPORTANT so that the socket's onclose() callback is called to terminate the Erowatch process'
+              //socket.close();
+            }
+          } else console.log(eroError("Socket not ready"));
         })
         .watch();
     };
@@ -104,12 +109,12 @@ Deno.serve(serveOptions, async (req: Request) => {
   } else {
     filename = path_join(Deno.cwd(), url.pathname);
 
-    //console.log(eroLog(`${blue("from other part->")} ${filename}`));
+    console.log(eroLog(`${blue("from other part->")} ${filename}`));
 
-    const searchParams = new URLSearchParams(req.url);
+    const searchParams = new URLSearchParams(url.search);
     if (searchParams.get("q") === "erodev") {
-      console.log(eroLog("a CSS refresh"));
       // This is a CSS request
+      console.log(eroLog("a CSS refresh"));
       const resp = await serveFile(req, filename);
       resp.headers.set("Cache-Control", "max-age=0");
       return resp;
@@ -126,6 +131,7 @@ Deno.serve(serveOptions, async (req: Request) => {
 
       const injectedHtml = injectWebSocket(fileContent);
 
+      watcher?.close();
       watcher = new Erowatch();
 
       return new Response(injectedHtml, {
@@ -169,6 +175,7 @@ Deno.serve(serveOptions, async (req: Request) => {
 
         const injectedHtml = injectWebSocket(fileContent);
 
+        watcher?.close();
         watcher = new Erowatch();
 
         return new Response(injectedHtml, {
