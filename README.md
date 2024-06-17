@@ -32,7 +32,7 @@ Alternatively, you can install using deno install
 ```sh
 deno install --allow-net --allow-read -n erodev jsr:@ero/dev@^0.1.0
 ```
-now run `erodev`
+Now run `erodev`
 
 ## Usage
 
