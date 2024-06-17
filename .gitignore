@@ -1,7 +1,3 @@
 src/
 coverage/
-*.html
-*.css
-*.js
-testing.ts
 

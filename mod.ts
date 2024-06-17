@@ -50,7 +50,7 @@ const serveOptions = {
     console.log(eroListen(`Server started at http://${hostname}:${port}`))
 };
 
-export const serveHandler = async (req: Request) => {
+export const serveHandler = async (req: Request): Promise<Response> => {
   const url = new URL(req.url);
 
   if (req.headers.get("upgrade") === "websocket") {
@@ -65,33 +65,31 @@ export const serveHandler = async (req: Request) => {
 
     socket.onopen = () => {
       socket.send("Connected");
-      console.log(eroLog("Connected"));
+      //console.log(eroLog("Connected"));
 
       assert(watcher, eroError("watcher should not be undefined"));
       watcher
         .add(filename)
         .on("modify", (w_paths) => {
-          console.log(`${blue("[erodev]")} ${underline(dim(w_paths.join()))} change detected! Reloading!`);
-          console.log(eroLog(`readyState: ${socket.readyState}`));
-          if (socket.readyState === 1) {
-            console.log(eroLog("sent something"));
-            if (path_extname(w_paths[0]) === ".css") socket.send("refreshCSS");
-            else {
-              socket.send("reload");
-              // iMPORTANT so that the socket's onclose() callback is called to terminate the Erowatch process'
-              //socket.close();
-            }
-          } else console.log(eroError("Socket not ready"));
+          console.log(`${blue("[erodev]")} ${underline(dim(w_paths.join()))} change detected! Reloading...`);
+          //if (socket.readyState === 1) {
+          if (path_extname(w_paths[0]) === ".css") socket.send("refreshCSS");
+          else {
+            socket.send("reload");
+            // iMPORTANT so that the socket's onclose() callback is called to terminate the Erowatch process'
+            //socket.close();
+          }
+          //} else console.log(eroError("Socket not ready"));
         })
         .watch();
     };
 
-    socket.onmessage = (e: MessageEvent) => {
-      console.log(`received: ${e.data}`);
-    };
+    //socket.onmessage = (e: MessageEvent) => {
+    //  console.log(`received: ${e.data}`);
+    //};
 
     socket.onclose = () => {
-      console.log(eroLog("Disconnected"));
+      //console.log(eroLog("Disconnected"));
       watcher?.close();
     };
 
@@ -103,12 +101,12 @@ export const serveHandler = async (req: Request) => {
   } else {
     filename = path_join(Deno.cwd(), url.pathname);
 
-    console.log(eroLog(`${blue("from other part->")} ${filename}`));
+    //console.log(eroLog(`${blue("from other part->")} ${filename}`));
 
     const searchParams = new URLSearchParams(url.search);
     if (searchParams.get("q") === "erodev") {
       // This is a CSS request
-      console.log(eroLog("a CSS refresh"));
+      //console.log(eroLog("a CSS refresh"));
       const resp = await serveFile(req, filename);
       resp.headers.set("Cache-Control", "max-age=0");
       return resp;
