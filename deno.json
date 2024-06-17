@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "exports": "./mod.ts",
   "imports": {
+    "@ero/watch": "jsr:@ero/watch@^0.1.0",
     "@std/assert": "jsr:@std/assert@^0.225.3",
     "@std/async": "jsr:@std/async@^0.224.1",
     "@std/fmt": "jsr:@std/fmt@^0.225.2",
