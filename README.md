@@ -7,7 +7,7 @@ Erodev is a lightweight development server for Deno that assists web developers 
 - **Automatic Reloading**: Automatically reloads your HTML, CSS, and JavaScript files when changes are detected.
 - **Simple Setup**: Easy to configure and use.
 - **Lightweight**: Minimal dependencies and easy on system resources.
-- **Cross-Platform**: Works on any platform that supports Deno.js.
+- **Cross-Platform**: Works on any platform that supports Deno.
 
 ## Table of Contents
 
@@ -42,9 +42,9 @@ Erodev can be started from the command line. Navigate to the root of your projec
 deno run --allow-net --allow-read jsr:@ero/dev@^0.1.0
 ```
 
-By default, Erodev will serve files from the current directory on port 5502. You can specify a different directory or port if needed.
+By default, Erodev will serve files from the current directory on port 5502. You can specify a different port if needed.
 
-## Example
+## Examples
 
 ```sh
 deno run --allow-net --allow-read jsr:@ero/dev@^0.1.0 --port=3000
