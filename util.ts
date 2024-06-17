@@ -57,7 +57,7 @@ export function eroListen(text: string) {
 }
 
 export function eroError(text: string) {
-  return red(`${bold("error")} ${text}`);
+  return `${red(bold("error"))}: ${text}`;
 }
 
 export function eroLog(...text: string[]) {
