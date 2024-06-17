@@ -16,7 +16,7 @@ import {
 export let watcher: Erowatch | undefined;
 
 // Check the argument list
-let PORT = 3000;
+let PORT = 5502;
 let PORT_OK = 0;
 
 const argsList = Deno.args;
