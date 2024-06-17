@@ -1,4 +1,4 @@
-import { debounceFn, eroError, eroListen, eroLog, injectWebSocket } from "./util.ts";
+import { eroError, eroListen, eroLog, injectWebSocket } from "./util.ts";
 import {
   Erowatch,
   path_join,
@@ -7,17 +7,13 @@ import {
   url_extname,
   serveFile,
   assert,
-  bold,
-  italic,
   underline,
   dim,
-  red,
-  blue,
-  green
+  blue
 } from "./dep.ts";
 
 // For erowatch stuff
-let watcher: Erowatch | undefined;
+export let watcher: Erowatch | undefined;
 
 // Check the argument list
 let PORT = 3000;
@@ -54,7 +50,7 @@ const serveOptions = {
     console.log(eroListen(`Server started at http://${hostname}:${port}`))
 };
 
-Deno.serve(serveOptions, async (req: Request) => {
+export const serveHandler = async (req: Request) => {
   const url = new URL(req.url);
 
   if (req.headers.get("upgrade") === "websocket") {
@@ -75,9 +71,7 @@ Deno.serve(serveOptions, async (req: Request) => {
       watcher
         .add(filename)
         .on("modify", (w_paths) => {
-          console.log(
-            `${blue("[erodev]")} ${underline(dim(w_paths.join()))} change detected! Reloading!`
-          );
+          console.log(`${blue("[erodev]")} ${underline(dim(w_paths.join()))} change detected! Reloading!`);
           console.log(eroLog(`readyState: ${socket.readyState}`));
           if (socket.readyState === 1) {
             console.log(eroLog("sent something"));
@@ -187,4 +181,6 @@ Deno.serve(serveOptions, async (req: Request) => {
       }
     }
   }
-});
+};
+
+if (import.meta.main) Deno.serve(serveOptions, serveHandler);

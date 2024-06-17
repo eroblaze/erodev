@@ -1,4 +1,5 @@
 src/
+coverage/
 *.html
 *.css
 *.js

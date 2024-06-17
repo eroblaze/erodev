@@ -2,7 +2,7 @@ import { debounce, blue, dim, underline, green, italic, red, bold } from "./dep.
 
 export function injectWebSocket(fileContent: string): string {
   const websocketjs = `
-<!-- Code injected by EroDev -->
+<!-- Code injected by erodev -->
 <script>
 if ("WebSocket" in window) {
 
