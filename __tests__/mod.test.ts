@@ -3,7 +3,7 @@ import { serveHandler } from "../mod.ts";
 
 let URL = "http://localhost:5502";
 
-Deno.test("Can serve an html file", { permissions: { read: true, write: true } }, async () => {
+Deno.test("Can serve an html file", { permissions: { read: true } }, async () => {
   URL = "http://localhost:5502/index.html";
   const req = new Request(URL);
   const res = await serveHandler(req);
@@ -14,7 +14,7 @@ Deno.test("Can serve an html file", { permissions: { read: true, write: true } }
 
 Deno.test(
   "Can serve an 'index.html' file as the default entry file in a dir",
-  { permissions: { read: true, write: true } },
+  { permissions: { read: true } },
   async () => {
     const req = new Request(URL);
     const res = await serveHandler(req);
@@ -24,31 +24,27 @@ Deno.test(
   }
 );
 
-Deno.test(
-  "Can serve other types of file",
-  { permissions: { read: true, write: true } },
-  async (t: Deno.TestContext) => {
-    await t.step("CSS file", async () => {
-      URL = "http://localhost:5502/style.css";
-      const req = new Request(URL);
-      const res = await serveHandler(req);
+Deno.test("Can serve other types of file", { permissions: { read: true } }, async (t: Deno.TestContext) => {
+  await t.step("CSS file", async () => {
+    URL = "http://localhost:5502/style.css";
+    const req = new Request(URL);
+    const res = await serveHandler(req);
 
-      const htmlFile = await res.text();
-      assert(htmlFile.includes("color"), "Wrong File!");
-    });
+    const htmlFile = await res.text();
+    assert(htmlFile.includes("color"), "Wrong File!");
+  });
 
-    await t.step("JavaScript file", async () => {
-      URL = "http://localhost:5502/script.js";
-      const req = new Request(URL);
-      const res = await serveHandler(req);
+  await t.step("JavaScript file", async () => {
+    URL = "http://localhost:5502/script.js";
+    const req = new Request(URL);
+    const res = await serveHandler(req);
 
-      const htmlFile = await res.text();
-      assert(htmlFile.includes("console"), "Wrong File!");
-    });
-  }
-);
+    const htmlFile = await res.text();
+    assert(htmlFile.includes("console"), "Wrong File!");
+  });
+});
 
-Deno.test("Returns 404 when the requested page isn't found", { permissions: { read: true, write: true } }, async () => {
+Deno.test("Returns 404 when the requested page isn't found", { permissions: { read: true } }, async () => {
   URL = "http://localhost/notfound.html";
   const req = new Request(URL);
   const res = await serveHandler(req);
