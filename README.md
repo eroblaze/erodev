@@ -25,13 +25,15 @@ To install Erodev, ensure you have Deno installed on your system. You can instal
 Once Deno is installed, you can run Erodev with the following command:
 
 ```sh
-deno run --allow-net --allow-read jsr:@ero/dev@^0.1.0
+deno run --allow-net --allow-read jsr:@ero/dev@^0.1.1
 ```
+
 Alternatively, you can install using deno install
 
 ```sh
-deno install --allow-net --allow-read -n erodev jsr:@ero/dev@^0.1.0
+deno install --global --allow-net --allow-read -n erodev jsr:@ero/dev@^0.1.1
 ```
+
 Now run `erodev`
 
 ## Usage
@@ -39,7 +41,7 @@ Now run `erodev`
 Erodev can be started from the command line. Navigate to the root of your project directory and run:
 
 ```sh
-deno run --allow-net --allow-read jsr:@ero/dev@^0.1.0
+deno run --allow-net --allow-read jsr:@ero/dev@^0.1.1
 ```
 
 By default, Erodev will serve files from the current directory on port 5502. You can specify a different port if needed.
@@ -47,7 +49,7 @@ By default, Erodev will serve files from the current directory on port 5502. You
 ## Examples
 
 ```sh
-deno run --allow-net --allow-read jsr:@ero/dev@^0.1.0 --port=3000
+deno run --allow-net --allow-read jsr:@ero/dev@^0.1.1 --port=3000
 ```
 
 ## Configuration
@@ -75,4 +77,3 @@ Erodev is licensed under the MIT License. See the [LICENSE](./LICENSE) for more 
 If you have any questions or need further assistance, feel free to reach out at [email](mailto:eboselumepaul@gmail.com).
 
 Thank you for using Erodev! Happy coding!
-

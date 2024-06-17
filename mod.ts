@@ -12,8 +12,8 @@ import {
   blue
 } from "./dep.ts";
 
-// For erowatch stuff
-export let watcher: Erowatch | undefined;
+// For erowatch stuff. When testing, export this.
+let watcher: Erowatch | undefined;
 
 // Check the argument list
 let PORT = 5502;
@@ -50,7 +50,8 @@ const serveOptions = {
     console.log(eroListen(`Server started at http://${hostname}:${port}`))
 };
 
-export const serveHandler = async (req: Request): Promise<Response> => {
+// When testing, export this
+const serveHandler = async (req: Request): Promise<Response> => {
   const url = new URL(req.url);
 
   if (req.headers.get("upgrade") === "websocket") {

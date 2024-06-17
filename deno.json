@@ -1,6 +1,6 @@
 {
   "name": "@ero/dev",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "exports": "./mod.ts",
   "imports": {
     "@ero/watch": "jsr:@ero/watch@^0.1.0",
