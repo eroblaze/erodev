@@ -4,7 +4,7 @@ export { join as path_join } from "@std/path/join";
 export { extname as url_extname } from "@std/url/extname";
 export { dirname as url_dirname } from "@std/url/dirname";
 export { serveFile } from "@std/http/file-server";
-export { bold, blue, dim, gray, underline, green, italic, red } from "@std/fmt/colors";
+export { bold, blue, dim, gray, underline, green, italic, red, yellow } from "@std/fmt/colors";
 export { debounce } from "@std/async/debounce";
 export { assert } from "@std/assert/assert";
 export { Erowatch } from "@ero/watch";

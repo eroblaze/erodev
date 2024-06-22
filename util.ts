@@ -1,6 +1,10 @@
-import { blue, green, italic, red, bold } from "./dep.ts";
+import { yellow, blue, green, italic, red, bold, dim } from "./dep.ts";
 
-export function injectWebSocket(fileContent: string): string {
+export function injectWebSocket(fileContent: string, fileName: string): string {
+  const regex = /<body\b[^>]*>(.*?)<\/body>/is;
+  if (!regex.test(fileContent))
+    console.log(eroWarn(`<body> tag is not found in ${dim(fileName)}... Reloading is disabled!`));
+
   const websocketjs = `
 <!-- Code injected by erodev -->
 <script>
@@ -58,6 +62,10 @@ export function eroListen(text: string) {
 
 export function eroError(text: string) {
   return `${red(bold("error"))}: ${text}`;
+}
+
+export function eroWarn(text: string) {
+  return `${yellow(bold("[erodev]"))} ${text}`;
 }
 
 export function eroLog(...text: string[]) {

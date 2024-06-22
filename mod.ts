@@ -122,7 +122,7 @@ const serveHandler = async (req: Request): Promise<Response> => {
         return new Response("Not Found", { status: 404 });
       }
 
-      const injectedHtml = injectWebSocket(fileContent);
+      const injectedHtml = injectWebSocket(fileContent, filename);
 
       watcher?.close();
       watcher = new Erowatch();
@@ -166,7 +166,7 @@ const serveHandler = async (req: Request): Promise<Response> => {
           return new Response("Not Found", { status: 404 });
         }
 
-        const injectedHtml = injectWebSocket(fileContent);
+        const injectedHtml = injectWebSocket(fileContent, filename);
 
         watcher?.close();
         watcher = new Erowatch();
